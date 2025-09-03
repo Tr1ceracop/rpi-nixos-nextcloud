@@ -39,10 +39,12 @@
           services.openssh.settings.KbdInteractiveAuthentication = false;
           services.openssh.settings.PermitRootLogin = "no";
 
+          virtualisation.docker.enable = true;
+
           # Create a user you can SSH into
-          users.users.felix = {
+          users.users.pi = {
             isNormalUser = true;
-            extraGroups = ["wheel" "networkmanager"];
+            extraGroups = ["wheel" "networkmanager" "docker"];
             openssh.authorizedKeys.keys = [
               # ⬇️ paste your real public key here
             ];
