@@ -41,6 +41,8 @@
 
           virtualisation.docker.enable = true;
 
+          boot.swraid.enable = true;
+
           # Create a user you can SSH into
           users.users.pi = {
             isNormalUser = true;
@@ -51,7 +53,7 @@
             # Lock the local password: no TTY/serial/console password login possible
             hashedPassword = "!";
           };
-          
+
           users.users.root.hashedPassword = "!";
 
           security.sudo.wheelNeedsPassword = false;
@@ -63,7 +65,8 @@
 
           ## B) Headless Wi-Fi with wpa_supplicant (simple & robust)
           networking.wireless.enable = true;
-          # networking.wireless.networks."mywifi".psk = "mypsk";
+
+          networking.wireless.networks."mywifi".psk = "mypsk";
 
           ## (Alternative) NetworkManager if you prefer:
           # networking.networkmanager.enable = true;
