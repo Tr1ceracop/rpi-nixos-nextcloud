@@ -30,7 +30,7 @@
           pkgs,
           ...
         }: {
-          networking.hostName = "rpi";
+          networking.hostName = "nextcloud";
           system.stateVersion = "24.11";
 
           # SSH for headless access
@@ -42,6 +42,31 @@
           virtualisation.docker.enable = true;
 
           boot.swraid.enable = true;
+
+          # Tell systemd-cryptsetup to unlock the LUKS container with the keyfile
+          # NAME  DEVICE                      KEYFILE                      OPTIONS
+          environment.etc."crypttab".text = ''
+            ncdata UUID=8511a302-809a-484b-a6fb-53504c9b3655 /etc/keys/data-raid.key luks,tries=3,timeout=30s
+          '';
+
+          # Mount the decrypted mapper device
+          fileSystems."/mnt/nextcloud_data" = {
+            device = "/dev/mapper/ncdata";
+            fsType = "ext4"; # or xfs/btrfs/zfs dataset etc.
+            # noauto,x-systemd.automount can be used if you want lazy on-demand mounts:
+            # options = [ "x-systemd.automount" "noauto" ];
+          };
+
+          programs.zsh = {
+            enable = true;
+            ohMyZsh = {
+              enable = true;
+              theme = "robbyrussell"; # pick any oh-my-zsh theme
+              plugins = ["git" "docker" "kubectl"]; # available oh-my-zsh plugins
+            };
+          };
+
+          users.defaultUserShell = pkgs.zsh;
 
           # Create a user you can SSH into
           users.users.pi = {
@@ -60,19 +85,13 @@
 
           # Choose one network approach:
 
-          ## A) ETHERNET-only out of the box (simplest)
-          # nothing to do; just plug it in.
-
           ## B) Headless Wi-Fi with wpa_supplicant (simple & robust)
           networking.wireless.enable = true;
 
-          networking.wireless.networks."mywifi".psk = "mypsk";
-
-          ## (Alternative) NetworkManager if you prefer:
-          # networking.networkmanager.enable = true;
+          networking.wireless.networks."ssid".psk = "mypsk";
 
           # Useful packages on the image
-          environment.systemPackages = with pkgs; [vim git htop];
+          environment.systemPackages = with pkgs; [vim git htop alejandra];
 
           # Firmware
           hardware.enableRedistributableFirmware = true;

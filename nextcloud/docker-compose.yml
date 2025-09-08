@@ -35,7 +35,7 @@ services:
       NEXTCLOUD_TRUSTED_DOMAINS: nextcloud localhost 127.0.0.1
     volumes:
       - nextcloud:/var/www/html
-      - /mnt/nextcloud-data:/var/www/html/data
+      - /mnt/nextcloud_data:/var/www/html/data
       - config:/var/www/html/config
       - custom_apps:/var/www/html/custom_apps
 
@@ -46,7 +46,7 @@ services:
       - app
     volumes:
       - nextcloud:/var/www/html
-      - /mnt/nextcloud-data/:/var/www/html/data
+      - /mnt/nextcloud_data/:/var/www/html/data
       - config:/var/www/html/config
       - custom_apps:/var/www/html/custom_apps
     entrypoint: /cron.sh
