@@ -33,14 +33,6 @@
           networking.hostName = "nextcloud";
           system.stateVersion = "24.11";
 
-          # SSH for headless access
-          services.openssh.enable = true;
-          services.openssh.settings.PasswordAuthentication = false;
-          services.openssh.settings.KbdInteractiveAuthentication = false;
-          services.openssh.settings.PermitRootLogin = "no";
-
-          virtualisation.docker.enable = true;
-
           boot.swraid.enable = true;
 
           # Tell systemd-cryptsetup to unlock the LUKS container with the keyfile
@@ -57,17 +49,24 @@
             # options = [ "x-systemd.automount" "noauto" ];
           };
 
+          # SSH for headless access
+          services.openssh.enable = true;
+          services.openssh.settings.PasswordAuthentication = false;
+          services.openssh.settings.KbdInteractiveAuthentication = false;
+          services.openssh.settings.PermitRootLogin = "no";
+
+          virtualisation.docker.enable = true;
+
           programs.zsh = {
             enable = true;
             ohMyZsh = {
               enable = true;
               theme = "robbyrussell"; # pick any oh-my-zsh theme
-              plugins = ["git" "docker" "kubectl"]; # available oh-my-zsh plugins
+              plugins = ["git" "docker" "kubectl" "sudo"]; # available oh-my-zsh plugins
             };
           };
 
           users.defaultUserShell = pkgs.zsh;
-
           # Create a user you can SSH into
           users.users.pi = {
             isNormalUser = true;
@@ -85,13 +84,36 @@
 
           # Choose one network approach:
 
+          ## A) ETHERNET-only out of the box (simplest)
+          # nothing to do; just plug it in.
+
           ## B) Headless Wi-Fi with wpa_supplicant (simple & robust)
           networking.wireless.enable = true;
 
-          networking.wireless.networks."ssid".psk = "mypsk";
+          # networking.wireless.networks."mywifi".psk = "mypsk";
+
+          time.timeZone = "Europe/Berlin";
+
+          systemd.services."daily-reboot" = {
+            description = "Reboot the system daily at 02:00";
+            serviceConfig = {
+              Type = "oneshot";
+              ExecStart = "${pkgs.systemd}/bin/systemctl reboot";
+            };
+          };
+
+          systemd.timers."daily-reboot" = {
+            wantedBy = ["timers.target"];
+            timerConfig = {
+              # Every day at 02:00 local time
+              OnCalendar = "02:00";
+              # If the Pi was off/asleep at 02:00, run it shortly after boot
+              Persistent = true;
+            };
+          };
 
           # Useful packages on the image
-          environment.systemPackages = with pkgs; [vim git htop alejandra];
+          environment.systemPackages = with pkgs; [vim git htop alejandra sops age tmux];
 
           # Firmware
           hardware.enableRedistributableFirmware = true;
